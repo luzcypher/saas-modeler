@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0f17" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="SaaS Model" />
+  <title>SaaS Pricing &amp; Revenue Modeler</title>
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-0: #0b0f17;
+      --bg-card: rgba(22, 30, 46, 0.72);
+      --line: rgba(148, 163, 184, 0.14);
+      --text: #e8eef8;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-2: #818cf8;
+      --good: #34d399;
+      --warn: #fbbf24;
+      --track: #1e293b;
+      --shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      min-height: 100%;
+      background:
+        radial-gradient(1200px 600px at 12% -10%, rgba(56, 189, 248, 0.14), transparent 50%),
+        radial-gradient(900px 500px at 100% 0%, rgba(129, 140, 248, 0.16), transparent 46%),
+        var(--bg-0);
+      color: var(--text);
+      font-family: Inter, system-ui, sans-serif;
+    }
+    body { display: flex; justify-content: center; padding: 28px 16px 48px; }
+    .app { width: min(800px, 100%); }
+    header { margin-bottom: 20px; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: var(--accent); font-size: 12px; font-weight: 600;
+      letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 10px;
+    }
+    .dot {
+      width: 7px; height: 7px; border-radius: 50%; background: var(--good);
+      box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.16);
+    }
+    h1 { font-size: clamp(26px, 4vw, 36px); letter-spacing: -0.04em; font-weight: 700; }
+    .sub { margin-top: 8px; color: var(--muted); font-size: 15px; line-height: 1.5; }
+    .formula {
+      margin-top: 14px; display: inline-flex; padding: 8px 12px;
+      border: 1px solid var(--line); border-radius: 999px;
+      background: rgba(15, 23, 42, 0.55); color: #cbd5e1;
+      font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12px;
+    }
+    .hero {
+      display: grid; grid-template-columns: 1.3fr 1fr; gap: 12px; margin: 18px 0 16px;
+    }
+    .kpi {
+      background: var(--bg-card); border: 1px solid var(--line);
+      border-radius: var(--radius); padding: 18px 20px; box-shadow: var(--shadow);
+    }
+    .kpi span { display: block; color: var(--muted); font-size: 12px; margin-bottom: 6px; }
+    .kpi b {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: clamp(26px, 5vw, 34px); font-weight: 600; letter-spacing: -0.03em;
+    }
+    .kpi em { font-style: normal; color: #67e8f9; font-size: 12px; display: block; margin-top: 8px; }
+    .card-stack, .panel-stack { display: grid; gap: 14px; }
+    .card, .panel {
+      background: var(--bg-card); border: 1px solid var(--line);
+      border-radius: var(--radius); padding: 18px 18px 16px; box-shadow: var(--shadow);
+    }
+    .panel h3 {
+      font-size: 13px; letter-spacing: 0.04em; text-transform: uppercase; margin-bottom: 12px;
+    }
+    .row-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 12px; }
+    .label-wrap h2 {
+      font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: #cbd5e1;
+    }
+    .hint { margin-top: 4px; font-size: 12px; color: var(--muted); }
+    .input-wrap {
+      display: flex; align-items: center; gap: 6px; background: #0b1220;
+      border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; min-width: 150px;
+    }
+    .input-wrap:focus-within {
+      border-color: rgba(56, 189, 248, 0.55);
+      box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.12);
+    }
+    .prefix { color: var(--muted); font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 14px; }
+    .num {
+      width: 100%; background: transparent; border: 0; outline: none; color: var(--text);
+      font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 20px; font-weight: 600; text-align: right;
+    }
+    input[type="range"] {
+      -webkit-appearance: none; appearance: none; width: 100%; height: 6px;
+      border-radius: 999px; background: var(--track); outline: none; cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%;
+      background: linear-gradient(180deg, #7dd3fc, #38bdf8); border: 2px solid #0b1220;
+      box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.18);
+    }
+    .range-meta {
+      display: flex; justify-content: space-between; margin-top: 8px; color: #64748b;
+      font-size: 11px; font-family: "JetBrains Mono", ui-monospace, monospace;
+    }
+    .title-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    }
+    .lock-pill, .lock-btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      font-size: 13px; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 700;
+    }
+    .lock-pill { color: #67e8f9; margin-top: 8px; }
+    .lock-btn {
+      flex: 0 0 auto;
+      border: 1px solid rgba(56, 189, 248, 0.45);
+      background: rgba(14, 116, 144, 0.22);
+      color: #e0f2fe;
+      border-radius: 999px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-family: inherit;
+      min-height: 40px;
+    }
+    .lock-btn[aria-pressed="true"] {
+      color: #082f49;
+      border-color: #67e8f9;
+      background: #67e8f9;
+    }
+    .lock-row {
+      margin-top: 12px;
+    }
+    .lock-row .lock-btn { width: 100%; }
+    .card.is-locked .input-wrap { border-style: dashed; }
+    .card.is-locked input[type="range"] { opacity: 0.45; pointer-events: none; }
+    .card.is-locked .num { pointer-events: none; }
+    .input-wrap.locked-field { pointer-events: none; border-style: dashed; background: #0a101b; }
+    .input-wrap.locked-field .num { color: #7dd3fc; }
+    .track-fill { height: 6px; border-radius: 999px; background: var(--track); overflow: hidden; }
+    .track-fill > span {
+      display: block; height: 100%; width: 0;
+      background: linear-gradient(90deg, #38bdf8, #818cf8); transition: width 0.15s ease;
+    }
+    .warn {
+      display: none; margin: 0 0 14px; padding: 12px 14px;
+      border: 1px solid rgba(251, 191, 36, 0.35); background: rgba(120, 53, 15, 0.25);
+      color: #fde68a; border-radius: 12px; font-size: 13px;
+    }
+    .warn.show { display: block; }
+    .grid-3, .grid-2 { display: grid; gap: 10px; }
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+    .grid-2 { grid-template-columns: 1fr 1fr; }
+    .mini label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+    .mini .input-wrap { min-width: 0; padding: 6px 10px; }
+    .mini .num { font-size: 16px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .btn {
+      border: 1px solid var(--line); background: #0b1220; color: var(--text);
+      border-radius: 10px; padding: 8px 12px; font-size: 12px; font-weight: 600;
+      cursor: pointer; font-family: inherit;
+    }
+    .btn:hover { border-color: rgba(56, 189, 248, 0.45); }
+    .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .delta { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13px; }
+    .up { color: var(--good); }
+    .down { color: #f87171; }
+    .tier { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px 0; border-top: 1px solid var(--line); }
+    .tier:first-of-type { border-top: 0; padding-top: 0; }
+    .muted { color: var(--muted); font-size: 12px; }
+    footer { margin-top: 16px; color: #64748b; font-size: 12px; }
+    @media (max-width: 700px) {
+      .hero, .grid-3, .grid-2, .compare { grid-template-columns: 1fr; }
+      .row-top { flex-direction: column; }
+      .input-wrap { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div class="eyebrow"><span class="dot"></span> Live model</div>
+      <h1>SaaS Pricing &amp; Revenue Modeler</h1>
+      <p class="sub">Price, volume, and yearly value stay linked. Locks freeze a field. Churn, expansion, and margin show what you keep.</p>
+      <div class="formula">Yearly = Price × Customers × 12</div>
+      <div class="actions" style="margin-top:12px">
+        <button class="btn" id="installBtn" type="button" hidden>Install app</button>
+        <span class="muted" id="installNote"></span>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="kpi">
+        <span>Total yearly value</span>
+        <b id="heroYear">$0</b>
+        <em id="heroYearNote">Booked ARR</em>
+      </div>
+      <div class="kpi">
+        <span>Total monthly value</span>
+        <b id="heroMonth">$0</b>
+        <em>Locked to yearly ÷ 12</em>
+      </div>
+    </section>
+
+    <p class="warn" id="warnBox"></p>
+
+    <section class="card-stack">
+      <article class="card" id="priceCard">
+        <div class="row-top">
+          <div class="label-wrap">
+            <div class="title-row">
+              <h2>Monthly Payment</h2>
+            </div>
+            <p class="hint">Price per customer / month.</p>
+          </div>
+          <label class="input-wrap">
+            <span class="prefix">$</span>
+            <input class="num" id="priceInput" type="text" inputmode="decimal" aria-label="Monthly payment" />
+          </label>
+        </div>
+        <input id="priceSlider" type="range" min="0" max="1000" step="1" />
+        <div class="range-meta"><span>$0</span><span>$1,000</span></div>
+        <div class="lock-row">
+          <button type="button" class="lock-btn" id="lockMonthly" aria-pressed="false"><span>Lock price</span></button>
+        </div>
+      </article>
+
+      <article class="card" id="custCard">
+        <div class="row-top">
+          <div class="label-wrap">
+            <h2>Number of Customers</h2>
+            <p class="hint">Paying accounts.</p>
+          </div>
+          <label class="input-wrap">
+            <input class="num" id="custInput" type="text" inputmode="numeric" aria-label="Number of customers" />
+          </label>
+        </div>
+        <input id="custSlider" type="range" min="0" max="5000" step="1" />
+        <div class="range-meta"><span>0</span><span>5,000</span></div>
+        <div class="lock-row">
+          <button type="button" class="lock-btn" id="lockCustomers" aria-pressed="false"><span>Lock customers</span></button>
+        </div>
+      </article>
+
+      <article class="card" id="yearCard">
+        <div class="row-top">
+          <div class="label-wrap">
+            <h2>Total Yearly Value</h2>
+            <p class="hint">Annual booked revenue from this mix.</p>
+          </div>
+          <label class="input-wrap">
+            <span class="prefix">$</span>
+            <input class="num" id="yearInput" type="text" inputmode="decimal" aria-label="Total yearly value" />
+          </label>
+        </div>
+        <input id="yearSlider" type="range" min="0" max="1000000" step="100" />
+        <div class="range-meta"><span>$0</span><span>$1,000,000</span></div>
+        <div class="lock-row">
+          <button type="button" class="lock-btn" id="lockYearly" aria-pressed="false"><span>Lock yearly</span></button>
+        </div>
+      </article>
+
+      <article class="card locked">
+        <div class="row-top">
+          <div class="label-wrap">
+            <h2>Total Monthly Value</h2>
+            <p class="hint">Company monthly revenue.</p>
+            <p class="lock-pill">Locked to yearly ÷ 12</p>
+          </div>
+          <label class="input-wrap locked-field">
+            <span class="prefix">$</span>
+            <input class="num" id="monthTotalInput" type="text" readonly tabindex="-1" />
+          </label>
+        </div>
+        <div class="track-fill"><span id="monthTotalBar"></span></div>
+        <div class="range-meta"><span>$0</span><span>$83,333</span></div>
+      </article>
+    </section>
+
+    <section class="panel-stack" style="margin-top:14px">
+      <article class="panel">
+        <h3>Retention &amp; take-home</h3>
+        <div class="grid-3">
+          <div class="mini">
+            <label>Annual churn %</label>
+            <label class="input-wrap"><input class="num" id="churnInput" type="text" inputmode="decimal" /></label>
+          </div>
+          <div class="mini">
+            <label>Expansion %</label>
+            <label class="input-wrap"><input class="num" id="expInput" type="text" inputmode="decimal" /></label>
+          </div>
+          <div class="mini">
+            <label>Gross margin %</label>
+            <label class="input-wrap"><input class="num" id="marginInput" type="text" inputmode="decimal" /></label>
+          </div>
+        </div>
+        <div class="grid-2" style="margin-top:12px">
+          <div class="kpi" style="box-shadow:none;padding:14px">
+            <span>Retained yearly</span>
+            <b id="retainedYear" style="font-size:22px">$0</b>
+            <em>After churn &amp; expansion</em>
+          </div>
+          <div class="kpi" style="box-shadow:none;padding:14px">
+            <span>Take-home yearly</span>
+            <b id="takehomeYear" style="font-size:22px">$0</b>
+            <em>Retained × margin</em>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel">
+        <h3>Plan mix</h3>
+        <p class="muted" style="margin-bottom:10px">Three tiers. Apply writes the blended price and total customers into the model.</p>
+        <div class="tier">
+          <div class="mini"><label>Starter $ / mo</label><label class="input-wrap"><span class="prefix">$</span><input class="num" id="t0p" type="text" inputmode="decimal" /></label></div>
+          <div class="mini"><label>Starter customers</label><label class="input-wrap"><input class="num" id="t0c" type="text" inputmode="numeric" /></label></div>
+        </div>
+        <div class="tier">
+          <div class="mini"><label>Pro $ / mo</label><label class="input-wrap"><span class="prefix">$</span><input class="num" id="t1p" type="text" inputmode="decimal" /></label></div>
+          <div class="mini"><label>Pro customers</label><label class="input-wrap"><input class="num" id="t1c" type="text" inputmode="numeric" /></label></div>
+        </div>
+        <div class="tier">
+          <div class="mini"><label>Plus $ / mo</label><label class="input-wrap"><span class="prefix">$</span><input class="num" id="t2p" type="text" inputmode="decimal" /></label></div>
+          <div class="mini"><label>Plus customers</label><label class="input-wrap"><input class="num" id="t2c" type="text" inputmode="numeric" /></label></div>
+        </div>
+        <p class="muted" id="mixSummary" style="margin-top:10px"></p>
+        <div class="actions">
+          <button class="btn" id="applyMix" type="button">Apply mix to model</button>
+        </div>
+      </article>
+
+      <article class="panel">
+        <h3>Scenario A / B</h3>
+        <div class="compare">
+          <div class="kpi" style="box-shadow:none;padding:14px">
+            <span>Scenario A (saved)</span>
+            <b id="aYear" style="font-size:20px">—</b>
+            <em id="aDetail">Save current to park a baseline</em>
+          </div>
+          <div class="kpi" style="box-shadow:none;padding:14px">
+            <span>Scenario B (live)</span>
+            <b id="bYear" style="font-size:20px">$0</b>
+            <em id="bDelta">No baseline yet</em>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn" id="saveA" type="button">Save current as A</button>
+          <button class="btn" id="swapAB" type="button">Load A into live</button>
+          <button class="btn" id="copySnap" type="button">Copy snapshot</button>
+        </div>
+        <p class="muted" id="copyStatus" style="margin-top:8px">Tap Copy snapshot, then long-press the box below if the clipboard stays empty.</p>
+        <textarea id="snapBox" readonly rows="6" style="width:100%;margin-top:8px;background:#0b1220;color:#e8eef8;border:1px solid var(--line);border-radius:12px;padding:10px;font-family:JetBrains Mono,ui-monospace,monospace;font-size:12px;line-height:1.45"></textarea>
+      </article>
+    </section>
+
+    <div class="grid-2" style="margin-top:14px">
+      <div class="kpi" style="padding:14px 16px">
+        <span>Yearly per customer</span>
+        <b id="acv" style="font-size:20px">$0</b>
+      </div>
+      <div class="kpi" style="padding:14px 16px">
+        <span>Take-home / customer / year</span>
+        <b id="netAcv" style="font-size:20px">$0</b>
+      </div>
+    </div>
+    <footer>Locks freeze inputs. Yearly per customer is price × 12. Share a snapshot as text, or copy the page URL after it updates (works when this file is hosted).</footer>
+  </main>
+
+  <script>
+    const LIMITS = {
+      monthly: { min: 0, max: 1000 },
+      customers: { min: 0, max: 5000 },
+      yearly: { min: 0, max: 1_000_000 }
+    };
+
+    const state = {
+      monthly: 50,
+      customers: 100,
+      yearly: 60_000,
+      lock: { monthly: false, customers: false, yearly: false },
+      churn: 0,
+      expansion: 0,
+      margin: 80,
+      tiers: [
+        { price: 29, customers: 60 },
+        { price: 79, customers: 30 },
+        { price: 199, customers: 10 }
+      ],
+      scenarioA: null,
+      warn: "",
+      syncing: false
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const els = {
+      priceInput: $("priceInput"), priceSlider: $("priceSlider"), priceCard: $("priceCard"),
+      custInput: $("custInput"), custSlider: $("custSlider"), custCard: $("custCard"),
+      yearInput: $("yearInput"), yearSlider: $("yearSlider"), yearCard: $("yearCard"),
+      lockMonthly: $("lockMonthly"), lockCustomers: $("lockCustomers"), lockYearly: $("lockYearly"),
+      monthTotalInput: $("monthTotalInput"), monthTotalBar: $("monthTotalBar"),
+      churnInput: $("churnInput"), expInput: $("expInput"), marginInput: $("marginInput"),
+      heroYear: $("heroYear"), heroMonth: $("heroMonth"), heroYearNote: $("heroYearNote"),
+      retainedYear: $("retainedYear"), takehomeYear: $("takehomeYear"),
+      acv: $("acv"), netAcv: $("netAcv"), warnBox: $("warnBox"),
+      t0p: $("t0p"), t0c: $("t0c"), t1p: $("t1p"), t1c: $("t1c"), t2p: $("t2p"), t2c: $("t2c"),
+      mixSummary: $("mixSummary"), applyMix: $("applyMix"),
+      aYear: $("aYear"), aDetail: $("aDetail"), bYear: $("bYear"), bDelta: $("bDelta"),
+      saveA: $("saveA"), swapAB: $("swapAB"), copySnap: $("copySnap"), copyStatus: $("copyStatus"),
+      snapBox: $("snapBox")
+    };
+
+    function clamp(n, min, max) { return Math.min(max, Math.max(min, n)); }
+    function roundMoney(n) { return Math.round(n * 100) / 100; }
+    function formatMoney(n) {
+      return n.toLocaleString("en-US", {
+        minimumFractionDigits: Number.isInteger(n) ? 0 : 2,
+        maximumFractionDigits: 2
+      });
+    }
+    function formatInt(n) { return Math.round(n).toLocaleString("en-US"); }
+    function parseNumber(raw) {
+      const cleaned = String(raw).replace(/[^0-9.-]/g, "");
+      if (cleaned === "" || cleaned === "." || cleaned === "-") return null;
+      const n = Number(cleaned);
+      return Number.isFinite(n) ? n : null;
+    }
+    function computeYearly(monthly, customers) {
+      return roundMoney(monthly * customers * 12);
+    }
+    function fromYearlyKeepMonthly(yearly, monthly) {
+      if (monthly <= 0) return 0;
+      return clamp(Math.round(yearly / (monthly * 12)), LIMITS.customers.min, LIMITS.customers.max);
+    }
+    function fromYearlyKeepCustomers(yearly, customers) {
+      if (customers <= 0) return 0;
+      return clamp(roundMoney(yearly / (customers * 12)), LIMITS.monthly.min, LIMITS.monthly.max);
+    }
+    function derived() {
+      const booked = state.yearly;
+      const retained = roundMoney(booked * (1 - state.churn / 100) * (1 + state.expansion / 100));
+      const takehome = roundMoney(retained * (state.margin / 100));
+      return { booked, monthTotal: roundMoney(booked / 12), retained, takehome };
+    }
+    function mixTotals() {
+      const customers = state.tiers.reduce((s, t) => s + (Number(t.customers) || 0), 0);
+      const revMonth = state.tiers.reduce((s, t) => s + (Number(t.price) || 0) * (Number(t.customers) || 0), 0);
+      const blended = customers > 0 ? roundMoney(revMonth / customers) : 0;
+      return { customers, blended, yearly: computeYearly(blended, customers) };
+    }
+
+    function applyLockUi() {
+      const rows = [
+        ["monthly", els.lockMonthly, els.priceCard, els.priceInput, els.priceSlider, "Lock price"],
+        ["customers", els.lockCustomers, els.custCard, els.custInput, els.custSlider, "Lock customers"],
+        ["yearly", els.lockYearly, els.yearCard, els.yearInput, els.yearSlider, "Lock yearly"]
+      ];
+      rows.forEach(([key, btn, card, input, slider, label]) => {
+        const on = state.lock[key];
+        btn.setAttribute("aria-pressed", on ? "true" : "false");
+        btn.querySelector("span").textContent = on ? "Locked" : label;
+        card.classList.toggle("is-locked", on);
+        input.readOnly = on;
+        slider.disabled = on;
+      });
+    }
+
+    function paint() {
+      state.syncing = true;
+      const d = derived();
+      els.priceInput.value = formatMoney(state.monthly);
+      els.priceSlider.value = String(clamp(state.monthly, LIMITS.monthly.min, LIMITS.monthly.max));
+      els.custInput.value = formatInt(state.customers);
+      els.custSlider.value = String(clamp(state.customers, LIMITS.customers.min, LIMITS.customers.max));
+      els.yearInput.value = formatMoney(state.yearly);
+      els.yearSlider.value = String(clamp(state.yearly, LIMITS.yearly.min, LIMITS.yearly.max));
+      els.monthTotalInput.value = formatMoney(d.monthTotal);
+      els.monthTotalBar.style.width = Math.min(100, (d.monthTotal / (LIMITS.yearly.max / 12)) * 100) + "%";
+      els.churnInput.value = String(state.churn);
+      els.expInput.value = String(state.expansion);
+      els.marginInput.value = String(state.margin);
+      els.heroYear.textContent = "$" + formatMoney(d.booked);
+      els.heroMonth.textContent = "$" + formatMoney(d.monthTotal);
+      els.heroYearNote.textContent = "Take-home $" + formatMoney(d.takehome);
+      els.retainedYear.textContent = "$" + formatMoney(d.retained);
+      els.takehomeYear.textContent = "$" + formatMoney(d.takehome);
+      els.acv.textContent = "$" + formatMoney(roundMoney(state.monthly * 12));
+      els.netAcv.textContent = state.customers
+        ? "$" + formatMoney(roundMoney(d.takehome / state.customers))
+        : "$0";
+      els.t0p.value = formatMoney(state.tiers[0].price);
+      els.t0c.value = formatInt(state.tiers[0].customers);
+      els.t1p.value = formatMoney(state.tiers[1].price);
+      els.t1c.value = formatInt(state.tiers[1].customers);
+      els.t2p.value = formatMoney(state.tiers[2].price);
+      els.t2c.value = formatInt(state.tiers[2].customers);
+      const mix = mixTotals();
+      els.mixSummary.textContent = "Mix: " + formatInt(mix.customers) + " customers · blended $" +
+        formatMoney(mix.blended) + "/mo · yearly $" + formatMoney(mix.yearly);
+      els.bYear.textContent = "$" + formatMoney(d.booked);
+      if (state.scenarioA) {
+        const diff = d.booked - state.scenarioA.yearly;
+        els.aYear.textContent = "$" + formatMoney(state.scenarioA.yearly);
+        els.aDetail.textContent = "$" + formatMoney(state.scenarioA.monthly) + " × " +
+          formatInt(state.scenarioA.customers) + " × 12";
+        const cls = diff > 0 ? "up" : diff < 0 ? "down" : "";
+        const sign = diff > 0 ? "+" : "";
+        els.bDelta.innerHTML = "<span class='delta " + cls + "'>" + sign + "$" + formatMoney(diff) + " vs A</span>";
+      } else {
+        els.aYear.textContent = "—";
+        els.aDetail.textContent = "Save current to park a baseline";
+          els.bDelta.textContent = "No baseline yet";
+      }
+      els.snapBox.value = snapshotText();
+      if (state.warn) {
+        els.warnBox.textContent = state.warn;
+        els.warnBox.classList.add("show");
+      } else {
+        els.warnBox.classList.remove("show");
+      }
+      applyLockUi();
+      writeHash();
+      state.syncing = false;
+    }
+
+    function reconcileFrom(monthly, customers, intendedYearly) {
+      state.monthly = clamp(roundMoney(monthly), LIMITS.monthly.min, LIMITS.monthly.max);
+      state.customers = clamp(Math.round(customers), LIMITS.customers.min, LIMITS.customers.max);
+      state.yearly = clamp(computeYearly(state.monthly, state.customers), LIMITS.yearly.min, LIMITS.yearly.max);
+      if (intendedYearly != null && Math.abs(state.yearly - intendedYearly) > 0.5) {
+        state.warn = "Hit a limit. Asked for $" + formatMoney(intendedYearly) +
+          " / year, landed at $" + formatMoney(state.yearly) +
+          " because price or customers could not move far enough.";
+      } else {
+        state.warn = "";
+      }
+    }
+
+    function setMonthly(value) {
+      if (state.lock.monthly) return paint();
+      const monthly = clamp(roundMoney(value), LIMITS.monthly.min, LIMITS.monthly.max);
+      if (state.lock.yearly && !state.lock.customers) {
+        reconcileFrom(monthly, fromYearlyKeepMonthly(state.yearly, monthly), state.yearly);
+      } else {
+        reconcileFrom(monthly, state.customers);
+      }
+      paint();
+    }
+    function setCustomers(value) {
+      if (state.lock.customers) return paint();
+      const customers = clamp(Math.round(value), LIMITS.customers.min, LIMITS.customers.max);
+      if (state.lock.yearly && !state.lock.monthly) {
+        reconcileFrom(fromYearlyKeepCustomers(state.yearly, customers), customers, state.yearly);
+      } else {
+        reconcileFrom(state.monthly, customers);
+      }
+      paint();
+    }
+    function setYearly(value) {
+      if (state.lock.yearly) return paint();
+      const yearly = clamp(roundMoney(value), LIMITS.yearly.min, LIMITS.yearly.max);
+      if (state.lock.monthly && state.lock.customers) return paint();
+      if (state.lock.customers && !state.lock.monthly) {
+        reconcileFrom(fromYearlyKeepCustomers(yearly, state.customers), state.customers, yearly);
+      } else {
+        reconcileFrom(state.monthly, fromYearlyKeepMonthly(yearly, state.monthly), yearly);
+      }
+      paint();
+    }
+    function toggleLock(key) {
+      const next = !state.lock[key];
+      const proposed = { ...state.lock, [key]: next };
+      if (next && ["monthly", "customers", "yearly"].filter((k) => proposed[k]).length === 3) return;
+      state.lock[key] = next;
+      paint();
+    }
+
+    function bindNumeric(input, onCommit) {
+      input.addEventListener("focus", () => input.select());
+      input.addEventListener("keydown", (e) => { if (e.key === "Enter") input.blur(); });
+      input.addEventListener("change", () => {
+        const n = parseNumber(input.value);
+        if (n === null) { paint(); return; }
+        onCommit(n);
+      });
+    }
+
+    function snapshotText() {
+      const d = derived();
+      return [
+        "SaaS Pricing & Revenue Modeler",
+        "Price $" + formatMoney(state.monthly) + " /mo × " + formatInt(state.customers) + " customers × 12",
+        "Yearly $" + formatMoney(d.booked) + " · Monthly $" + formatMoney(d.monthTotal),
+        "Churn " + state.churn + "% · Expansion " + state.expansion + "% · Margin " + state.margin + "%",
+        "Retained $" + formatMoney(d.retained) + " · Take-home $" + formatMoney(d.takehome),
+        "Yearly per customer $" + formatMoney(roundMoney(state.monthly * 12))
+      ].join("\n");
+    }
+
+    function writeHash() {
+      try {
+        const payload = {
+          m: state.monthly, c: state.customers, y: state.yearly,
+          ch: state.churn, e: state.expansion, g: state.margin
+        };
+        history.replaceState(null, "", "#" + btoa(JSON.stringify(payload)));
+      } catch (err) { /* file:// may ignore */ }
+    }
+    function readHash() {
+      if (!location.hash || location.hash.length < 4) return;
+      try {
+        const p = JSON.parse(atob(location.hash.slice(1)));
+        if (p.m != null) state.monthly = Number(p.m);
+        if (p.c != null) state.customers = Number(p.c);
+        if (p.y != null) state.yearly = Number(p.y);
+        if (p.ch != null) state.churn = Number(p.ch);
+        if (p.e != null) state.expansion = Number(p.e);
+        if (p.g != null) state.margin = Number(p.g);
+        reconcileFrom(state.monthly, state.customers);
+      } catch (err) { /* ignore bad hash */ }
+    }
+
+    els.priceSlider.addEventListener("input", () => { if (!state.syncing) setMonthly(Number(els.priceSlider.value)); });
+    els.custSlider.addEventListener("input", () => { if (!state.syncing) setCustomers(Number(els.custSlider.value)); });
+    els.yearSlider.addEventListener("input", () => { if (!state.syncing) setYearly(Number(els.yearSlider.value)); });
+    bindNumeric(els.priceInput, setMonthly);
+    bindNumeric(els.custInput, setCustomers);
+    bindNumeric(els.yearInput, setYearly);
+    bindNumeric(els.churnInput, (n) => { state.churn = clamp(n, 0, 100); paint(); });
+    bindNumeric(els.expInput, (n) => { state.expansion = clamp(n, -50, 200); paint(); });
+    bindNumeric(els.marginInput, (n) => { state.margin = clamp(n, 0, 100); paint(); });
+    ["t0p","t1p","t2p"].forEach((id, i) => bindNumeric(els[id], (n) => {
+      state.tiers[i].price = clamp(roundMoney(n), 0, 1000); paint();
+    }));
+    ["t0c","t1c","t2c"].forEach((id, i) => bindNumeric(els[id], (n) => {
+      state.tiers[i].customers = clamp(Math.round(n), 0, 5000); paint();
+    }));
+    els.lockMonthly.addEventListener("click", () => toggleLock("monthly"));
+    els.lockCustomers.addEventListener("click", () => toggleLock("customers"));
+    els.lockYearly.addEventListener("click", () => toggleLock("yearly"));
+    els.applyMix.addEventListener("click", () => {
+      const mix = mixTotals();
+      state.lock.monthly = false;
+      state.lock.customers = false;
+      reconcileFrom(mix.blended, mix.customers);
+      paint();
+    });
+    els.saveA.addEventListener("click", () => {
+      state.scenarioA = { monthly: state.monthly, customers: state.customers, yearly: state.yearly };
+      paint();
+    });
+    els.swapAB.addEventListener("click", () => {
+      if (!state.scenarioA) return;
+      const live = { monthly: state.monthly, customers: state.customers, yearly: state.yearly };
+      reconcileFrom(state.scenarioA.monthly, state.scenarioA.customers);
+      state.scenarioA = live;
+      paint();
+    });
+    function copyByTextarea(text) {
+      els.snapBox.value = text;
+      els.snapBox.focus();
+      els.snapBox.select();
+      els.snapBox.setSelectionRange(0, text.length);
+      try {
+        return document.execCommand("copy");
+      } catch (err) {
+        return false;
+      }
+    }
+
+    els.copySnap.addEventListener("click", async () => {
+      const text = snapshotText();
+      els.snapBox.value = text;
+      let ok = false;
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+          ok = true;
+        }
+      } catch (err) { ok = false; }
+      if (!ok) ok = copyByTextarea(text);
+      els.copyStatus.textContent = ok
+        ? "Copied the model text. Paste it in Notes or Messages."
+        : "Clipboard is blocked on this file. Long-press the text box and choose Copy.";
+    });
+
+    readHash();
+    paint();
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./sw.js").catch(function () {});
+    }
+
+    var deferredPrompt = null;
+    var installBtn = document.getElementById("installBtn");
+    var installNote = document.getElementById("installNote");
+    window.addEventListener("beforeinstallprompt", function (e) {
+      e.preventDefault();
+      deferredPrompt = e;
+      if (installBtn) installBtn.hidden = false;
+      if (installNote) installNote.textContent = "Install puts this on the home screen / app drawer.";
+    });
+    if (installBtn) installBtn.addEventListener("click", async function () {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      installBtn.hidden = true;
+    });
+    window.addEventListener("appinstalled", function () {
+      installBtn.hidden = true;
+      installNote.textContent = "Installed. Open it from the app drawer or home screen.";
+    });
+  </script>
+</body>
+</html>

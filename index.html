@@ -10,8 +10,8 @@
   <meta name="apple-mobile-web-app-title" content="SaaS Model" />
   <title>SaaS Pricing &amp; Revenue Modeler</title>
   <link rel="manifest" href="./manifest.webmanifest" />
-  <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />
-  <link rel="apple-touch-icon" href="./icon-192.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
@@ -227,7 +227,7 @@
           </label>
         </div>
         <input id="priceSlider" type="range" min="0" max="1000" step="1" />
-        <div class="range-meta"><span>$0</span><span>$1,000</span></div>
+        <div class="range-meta"><span>$0</span><span id="priceMaxLabel">$1,000+</span></div>
         <div class="lock-row">
           <button type="button" class="lock-btn" id="lockMonthly" aria-pressed="false"><span>Lock price</span></button>
         </div>
@@ -262,7 +262,7 @@
           </label>
         </div>
         <input id="yearSlider" type="range" min="0" max="1000000" step="100" />
-        <div class="range-meta"><span>$0</span><span>$1,000,000</span></div>
+        <div class="range-meta"><span>$0</span><span id="yearMaxLabel">$1,000,000+</span></div>
         <div class="lock-row">
           <button type="button" class="lock-btn" id="lockYearly" aria-pressed="false"><span>Lock yearly</span></button>
         </div>
@@ -376,10 +376,18 @@
 
   <script>
     const LIMITS = {
-      monthly: { min: 0, max: 1000 },
+      monthly: { min: 0, max: Number.MAX_SAFE_INTEGER },
       customers: { min: 0, max: 5000 },
-      yearly: { min: 0, max: 1_000_000 }
+      yearly: { min: 0, max: Number.MAX_SAFE_INTEGER },
+      sliderFloor: { monthly: 1000, yearly: 1_000_000 }
     };
+
+    function sliderMax(value, floor) {
+      const v = Math.max(0, Number(value) || 0);
+      if (v <= floor) return floor;
+      const mag = Math.pow(10, Math.max(0, Math.floor(Math.log10(v))));
+      return Math.ceil((v * 1.25) / mag) * mag;
+    }
 
     const state = {
       monthly: 50,
@@ -441,7 +449,7 @@
     }
     function fromYearlyKeepCustomers(yearly, customers) {
       if (customers <= 0) return 0;
-      return clamp(roundMoney(yearly / (customers * 12)), LIMITS.monthly.min, LIMITS.monthly.max);
+      return Math.max(LIMITS.monthly.min, roundMoney(yearly / (customers * 12)));
     }
     function derived() {
       const booked = state.yearly;
@@ -475,14 +483,22 @@
     function paint() {
       state.syncing = true;
       const d = derived();
+      const priceCap = sliderMax(state.monthly, LIMITS.sliderFloor.monthly);
+      const yearCap = sliderMax(state.yearly, LIMITS.sliderFloor.yearly);
+      els.priceSlider.max = String(priceCap);
+      els.yearSlider.max = String(yearCap);
+      const priceMaxLabel = document.getElementById("priceMaxLabel");
+      const yearMaxLabel = document.getElementById("yearMaxLabel");
+      if (priceMaxLabel) priceMaxLabel.textContent = "$" + formatMoney(priceCap) + "+";
+      if (yearMaxLabel) yearMaxLabel.textContent = "$" + formatMoney(yearCap) + "+";
       els.priceInput.value = formatMoney(state.monthly);
-      els.priceSlider.value = String(clamp(state.monthly, LIMITS.monthly.min, LIMITS.monthly.max));
+      els.priceSlider.value = String(Math.max(0, state.monthly));
       els.custInput.value = formatInt(state.customers);
       els.custSlider.value = String(clamp(state.customers, LIMITS.customers.min, LIMITS.customers.max));
       els.yearInput.value = formatMoney(state.yearly);
-      els.yearSlider.value = String(clamp(state.yearly, LIMITS.yearly.min, LIMITS.yearly.max));
+      els.yearSlider.value = String(Math.max(0, state.yearly));
       els.monthTotalInput.value = formatMoney(d.monthTotal);
-      els.monthTotalBar.style.width = Math.min(100, (d.monthTotal / (LIMITS.yearly.max / 12)) * 100) + "%";
+      els.monthTotalBar.style.width = Math.min(100, (d.monthTotal / Math.max(yearCap / 12, 1)) * 100) + "%";
       els.churnInput.value = String(state.churn);
       els.expInput.value = String(state.expansion);
       els.marginInput.value = String(state.margin);
@@ -531,13 +547,12 @@
     }
 
     function reconcileFrom(monthly, customers, intendedYearly) {
-      state.monthly = clamp(roundMoney(monthly), LIMITS.monthly.min, LIMITS.monthly.max);
+      state.monthly = Math.max(LIMITS.monthly.min, roundMoney(monthly));
       state.customers = clamp(Math.round(customers), LIMITS.customers.min, LIMITS.customers.max);
-      state.yearly = clamp(computeYearly(state.monthly, state.customers), LIMITS.yearly.min, LIMITS.yearly.max);
+      state.yearly = Math.max(LIMITS.yearly.min, computeYearly(state.monthly, state.customers));
       if (intendedYearly != null && Math.abs(state.yearly - intendedYearly) > 0.5) {
-        state.warn = "Hit a limit. Asked for $" + formatMoney(intendedYearly) +
-          " / year, landed at $" + formatMoney(state.yearly) +
-          " because price or customers could not move far enough.";
+        state.warn = "Customer count is capped at 5,000. Asked for $" + formatMoney(intendedYearly) +
+          " / year, landed at $" + formatMoney(state.yearly) + ".";
       } else {
         state.warn = "";
       }
@@ -545,7 +560,7 @@
 
     function setMonthly(value) {
       if (state.lock.monthly) return paint();
-      const monthly = clamp(roundMoney(value), LIMITS.monthly.min, LIMITS.monthly.max);
+      const monthly = Math.max(LIMITS.monthly.min, roundMoney(value));
       if (state.lock.yearly && !state.lock.customers) {
         reconcileFrom(monthly, fromYearlyKeepMonthly(state.yearly, monthly), state.yearly);
       } else {
@@ -565,7 +580,7 @@
     }
     function setYearly(value) {
       if (state.lock.yearly) return paint();
-      const yearly = clamp(roundMoney(value), LIMITS.yearly.min, LIMITS.yearly.max);
+      const yearly = Math.max(LIMITS.yearly.min, roundMoney(value));
       if (state.lock.monthly && state.lock.customers) return paint();
       if (state.lock.customers && !state.lock.monthly) {
         reconcileFrom(fromYearlyKeepCustomers(yearly, state.customers), state.customers, yearly);

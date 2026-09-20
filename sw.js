@@ -1,5 +1,5 @@
 /* Bump CACHE when you ship a real upgrade so installed copies refresh. */
-const CACHE = "saas-model-v3";
+const CACHE = "saas-model-v4";
 const PRECACHE = [
   "./",
   "./index.html",

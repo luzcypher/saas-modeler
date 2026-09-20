@@ -219,7 +219,7 @@
             <div class="title-row">
               <h2>Monthly Payment</h2>
             </div>
-            <p class="hint">Price per customer / month.</p>
+            <p class="hint">Price per customer / month. No cap — type any amount.</p>
           </div>
           <label class="input-wrap">
             <span class="prefix">$</span>
@@ -227,7 +227,7 @@
           </label>
         </div>
         <input id="priceSlider" type="range" min="0" max="1000" step="1" />
-        <div class="range-meta"><span>$0</span><span id="priceMaxLabel">$1,000+</span></div>
+        <div class="range-meta"><span>$0</span><span id="priceMaxLabel">No cap</span></div>
         <div class="lock-row">
           <button type="button" class="lock-btn" id="lockMonthly" aria-pressed="false"><span>Lock price</span></button>
         </div>
@@ -237,14 +237,14 @@
         <div class="row-top">
           <div class="label-wrap">
             <h2>Number of Customers</h2>
-            <p class="hint">Paying accounts.</p>
+            <p class="hint">Paying accounts. Customer count is capped at 500.</p>
           </div>
           <label class="input-wrap">
             <input class="num" id="custInput" type="text" inputmode="numeric" aria-label="Number of customers" />
           </label>
         </div>
         <input id="custSlider" type="range" min="0" max="500" step="1" />
-        <div class="range-meta"><span>0</span><span>500</span></div>
+        <div class="range-meta"><span>0</span><span>Capped at 500</span></div>
         <div class="lock-row">
           <button type="button" class="lock-btn" id="lockCustomers" aria-pressed="false"><span>Lock customers</span></button>
         </div>
@@ -254,7 +254,7 @@
         <div class="row-top">
           <div class="label-wrap">
             <h2>Total Yearly Value</h2>
-            <p class="hint">Annual booked revenue from this mix.</p>
+            <p class="hint">Annual booked revenue from this mix. No cap — type any amount.</p>
           </div>
           <label class="input-wrap">
             <span class="prefix">$</span>
@@ -262,7 +262,7 @@
           </label>
         </div>
         <input id="yearSlider" type="range" min="0" max="1000000" step="100" />
-        <div class="range-meta"><span>$0</span><span id="yearMaxLabel">$1,000,000+</span></div>
+        <div class="range-meta"><span>$0</span><span id="yearMaxLabel">No cap</span></div>
         <div class="lock-row">
           <button type="button" class="lock-btn" id="lockYearly" aria-pressed="false"><span>Lock yearly</span></button>
         </div>
@@ -489,8 +489,8 @@
       els.yearSlider.max = String(yearCap);
       const priceMaxLabel = document.getElementById("priceMaxLabel");
       const yearMaxLabel = document.getElementById("yearMaxLabel");
-      if (priceMaxLabel) priceMaxLabel.textContent = "$" + formatMoney(priceCap) + "+";
-      if (yearMaxLabel) yearMaxLabel.textContent = "$" + formatMoney(yearCap) + "+";
+      if (priceMaxLabel) priceMaxLabel.textContent = "No cap";
+      if (yearMaxLabel) yearMaxLabel.textContent = "No cap";
       els.priceInput.value = formatMoney(state.monthly);
       els.priceSlider.value = String(Math.max(0, state.monthly));
       els.custInput.value = formatInt(state.customers);
